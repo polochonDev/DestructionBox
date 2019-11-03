@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using DG.Tweening;
+
 public class GameManager : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -11,9 +12,12 @@ public class GameManager : MonoBehaviour
     {
         currentLevel = PlayerPrefs.GetInt("Level");
         InitLevel();
+        uiManager.SetVibration();
     }
     public void InitLevel(bool reset = false)
     {
+        playerAmmunitions.transform.position = startPos.position;
+        playerAmmunitions.transform.eulerAngles = startPos.eulerAngles;
         uiManager.currentLevel.text = currentLevel.ToString();
         uiManager.nextLevel.text = (currentLevel + 1).ToString();
         currentGameState = GameState.Start;
@@ -59,7 +63,9 @@ public class GameManager : MonoBehaviour
 
         ScoreUi.text = currentScore.ToString();
         StartCoroutine("EnablePhysicSmooth");
-        AddBalls(10);
+        int nbBalls = 5 + (int)(currentLevel * 0.3f);
+        nbBalls = nbBalls < 8 ? nbBalls : 8;
+        AddBalls(nbBalls);
         spawnProjectile.CreateProjectile();
         uiManager.startInterface.SetActive(false);
         uiManager.inGameCanvas.SetActive(true);
@@ -81,10 +87,10 @@ public class GameManager : MonoBehaviour
         go.transform.position = new Vector3(0, 0, 0);
         int luckNormal = (int)(currentLevel * 0.9f);//5
         luckNormal = luckNormal <= 10 ? luckNormal : 25;
-        int luckExplosive = (int)(currentLevel * .9f);//5
-        luckExplosive = luckExplosive <= 15 ? luckNormal : 15;
-        int luckBonus = (int)(currentLevel * 1f);//5
-        luckBonus = luckBonus <= 15 ? luckBonus : 15;
+        int luckExplosive = (int)(currentLevel * .3f);//5
+        luckExplosive = luckExplosive <= 10 ? luckNormal : 10;
+        int luckBonus = (int)(currentLevel * 0.5f);//5
+        luckBonus = luckBonus <= 10 ? luckBonus : 10;
         int luckColor = 100 - luckBonus - luckExplosive;//90
         for (int i = 0; i < go.transform.childCount; i++)
         {
@@ -133,9 +139,9 @@ public class GameManager : MonoBehaviour
         int resultTotal = (luckColor + luckBonus + luckExplosive);
         Debug.Log(targetScore  + " " + resultTotal);
         float multiplicatorScore = (0.5f + (currentLevel * 0.02f));
-        multiplicatorScore = multiplicatorScore <= 1.2f ? multiplicatorScore : 1.2f;
+        multiplicatorScore = multiplicatorScore <= 1.05f ? multiplicatorScore : 1.05f;
         targetScore = (int)(targetScore * (multiplicatorScore));
-
+        uiManager.startBtn.interactable = true;
         yield return null;
     }
     public void AddBalls(int nb)
@@ -223,6 +229,10 @@ public class GameManager : MonoBehaviour
     {
         if (currentGameState == GameState.EndGame)
             return;
+        uiManager.startBtn.interactable = false;
+        if(currentGameState == GameState.CheckEnd)
+            uiManager.timerBeforeLoose.transform.parent.DOScale(0, 0.5f).OnComplete(() => uiManager.timerBeforeLoose.transform.parent.gameObject.SetActive(false));
+
         currentGameState = GameState.EndGame;
         uiManager.victoryInterface.SetActive(true);
         uiManager.inGameCanvas.SetActive(false);
@@ -235,28 +245,70 @@ public class GameManager : MonoBehaviour
     }
     public void LooseLevel()
     {
-        currentGameState = GameState.EndGame;
-        uiManager.looseInterface.SetActive(true);
-        uiManager.inGameCanvas.SetActive(false);
-        spawnProjectile.enabled = false;
-        spawnProjectile.transform.GetChild(0).gameObject.SetActive(false);
-        uiManager.looseInterface.GetComponent<LooseScreenManager>().InitScreen();
+        currentGameState = GameState.CheckEnd;
+        StartCoroutine("CheckLoose");
+    }
+    IEnumerator CheckLoose()
+    {
+        float count = 5;
+        uiManager.timerBeforeLoose.transform.parent.gameObject.SetActive(true);
+        uiManager.timerBeforeLoose.transform.parent.localScale = Vector3.zero;
+        uiManager.timerBeforeLoose.transform.parent.DOScale(1, 0.5f);
+        while (count > 0)
+        {
+            uiManager.timerBeforeLoose.fillAmount = count / 5f;
+            count -= Time.deltaTime;
+            yield return null;
+        }
+        uiManager.timerBeforeLoose.transform.parent.DOScale(0, 0.5f).OnComplete(()=> uiManager.timerBeforeLoose.transform.parent.gameObject.SetActive(false));
+
+        if (currentGameState == GameState.CheckEnd)
+        {
+            uiManager.startBtn.interactable = false;
+
+            currentGameState = GameState.EndGame;
+            uiManager.looseInterface.SetActive(true);
+            uiManager.inGameCanvas.SetActive(false);
+            spawnProjectile.enabled = false;
+            spawnProjectile.transform.GetChild(0).gameObject.SetActive(false);
+            uiManager.looseInterface.GetComponent<LooseScreenManager>().InitScreen();
+        }
+        yield return null;
     }
     public void AddScore(int sc)
     {
-        currentScore += sc;
+        StartCoroutine("ScoreSmooth", sc);
+     //   currentScore += sc;
+     //       ScoreUi.text = currentScore.ToString();
+     //   uiManager.UpdateScore(currentScore, targetScore);
+  
+    }
+    public IEnumerator ScoreSmooth(int sc)
+    {
+        int currentAdd = 0;
+        while (currentAdd < sc)
+        {
+            currentScore += 1;
+            currentAdd += 1;
             ScoreUi.text = currentScore.ToString();
-        uiManager.UpdateScore(currentScore, targetScore);
+            ScoreUi.GetComponent<Animation>().Play();
+            uiManager.UpdateScore(currentScore, targetScore);
+            yield return new WaitForSeconds(0.01f);
+        }
         if (currentScore >= targetScore)
         {
             WinLevel();
 
         }
+        yield return null;
     }
-    public int currentLevel;
-    public int currentScore;
+    private int currentLevel;
+    private int currentScore;
     public PlayerAmmunitions playerAmmunitions;
     public SpawnProjectile spawnProjectile;
+    public CameraController cameraController;
+    public UIManager uiManager;
+
     public GameObject elementExplosivePrefab;
     public GameObject elementBonusPrefab;
     public GameObject elementColorPrefab;
@@ -265,15 +317,15 @@ public class GameManager : MonoBehaviour
     public List<GameObject > currentLD;
     public List<GameObject> Lds;
     public TextMeshProUGUI ScoreUi;
-    public UIManager uiManager;
-    public CameraController cameraController;
     public Transform groundGraph;
     public bool vibrationActivate;
+    public Transform startPos;
     int targetScore;
     public enum GameState
     {
         Start,
         InGame,
+        CheckEnd,
         EndGame
     }
     public GameState currentGameState;

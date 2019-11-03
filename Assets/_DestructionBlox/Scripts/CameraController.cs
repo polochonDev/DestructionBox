@@ -17,10 +17,8 @@ public class CameraController : MonoBehaviour
             targetAngle = 0;
         else
             targetAngle = 180;
-        Debug.Log("Make180" + transform.eulerAngles.y);
         while (transform.eulerAngles.y < targetAngle)
         {
-            Debug.Log("in" + transform.eulerAngles.y);
 
             Vector2 TouchDirection = new Vector2(8, 0);
             Vector3 worldVector = Camera.main.ScreenToWorldPoint(new Vector3(TouchDirection.x, TouchDirection.y, 0));

@@ -35,6 +35,8 @@ public class PlayerAmmunitions : MonoBehaviour
         {
             if(listAmmo.Length > 0)
             {
+                nextAmmoSprite.color = new Color(255, 255, 255, 1);
+
                 var typeOfNextBalls = listAmmo[0].myType;
                 if (typeOfNextBalls != ProjectileMove.TypeOfBall.Color)
                 {
@@ -52,7 +54,8 @@ public class PlayerAmmunitions : MonoBehaviour
             else
             {
                 nextAmmoSprite.sprite = null;
-                gameManager.uiManager.lastBalls.SetActive(true);
+                //   gameManager.uiManager.lastBalls.SetActive(true);
+                nextAmmoSprite.color = new Color(0, 0, 0, 0);
             }
 
         }

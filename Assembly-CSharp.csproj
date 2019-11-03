@@ -68,7 +68,6 @@
     <Compile Include="Assets\_DestructionBlox\Scripts\ElementDestructible\ElementDestructibleBonus.cs" />
     <Compile Include="Assets\_DestructionBlox\Scripts\ElementDestructible\ElementDestructibleColor.cs" />
     <Compile Include="Assets\_DestructionBlox\Scripts\ElementDestructible\ElementDestructibleSimple.cs" />
-    <Compile Include="Assets\_DestructionBlox\Scripts\FireController.cs" />
     <Compile Include="Assets\_DestructionBlox\Scripts\GameManager.cs" />
     <Compile Include="Assets\_DestructionBlox\Scripts\LookTouchTarget.cs" />
     <Compile Include="Assets\_DestructionBlox\Scripts\PlayerAmmunitions.cs" />

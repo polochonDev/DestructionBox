@@ -23,6 +23,19 @@ public class UIManager : MonoBehaviour
         Debug.Log(currentScore + " " + targetScore);
         sliderScore.value = ((float)currentScore / targetScore) ;
     }
+    public void ClickOption()
+    {
+        if (optionOpen)
+        {
+            btnOption.Play("CloseOption");
+            optionOpen = false;
+        }
+        else
+        {
+            btnOption.Play("OpenOption");
+            optionOpen = true;
+        }
+    }
     public void OpenVictoryScreen()
     {
         victoryInterface.SetActive(true);
@@ -32,6 +45,13 @@ public class UIManager : MonoBehaviour
         fireworkVictory.SetActive(true);
 
     }
+    public void SetVibration(GameObject not = null)
+    {
+        gm.vibrationActivate = !gm.vibrationActivate;
+        if(not != null)
+            not.SetActive(!gm.vibrationActivate);
+    }
+    public GameManager gm;
     public GameObject inGameCanvas;
     public GameObject startInterface;
     public GameObject victoryInterface;
@@ -43,4 +63,8 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI nextLevel;
     public GameObject fireworkVictory;
     public RectTransform textVictory;
+    public Animation btnOption;
+    public Button startBtn;
+    public Image timerBeforeLoose;
+    bool optionOpen;
 }

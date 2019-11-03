@@ -50,6 +50,11 @@ public class SpawnProjectile : MonoBehaviour
     {
         Debug.LogError("CreateProjectile");
 
+        if (ammunitions.currentAmmo.Count == 1)
+        {
+            gameManager.uiManager.lastBalls.SetActive(true);
+            gameManager.uiManager.lastBalls.GetComponent<Animation>().Play();
+        }
         if (ammunitions.currentAmmo.Count > 0)
         {
             if(currentProjectile != null)
