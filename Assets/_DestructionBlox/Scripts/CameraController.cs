@@ -1,83 +1,49 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
     public IEnumerator Make180()
     {
         float startAngle = transform.eulerAngles.y;
         float targetAngle = 0;
-        if (startAngle > 180)
-            targetAngle = 0;
-        else
-            targetAngle = 180;
+        targetAngle = 180;
         while (transform.eulerAngles.y < targetAngle)
         {
+            Vector2 touchDirection = new Vector2(8, 0);
 
-            Vector2 TouchDirection = new Vector2(8, 0);
-            Vector3 worldVector = Camera.main.ScreenToWorldPoint(new Vector3(TouchDirection.x, TouchDirection.y, 0));
-
-            Vector2 SpinDirection = new Vector2(TouchDirection.x - (Camera.main.pixelWidth * 0.5f), TouchDirection.y - (Camera.main.pixelHeight * 0.5f)) * 2f;
-
-            transform.RotateAround(Target.transform.position, Vector3.up, TouchDirection.x * SpeedMultiplier);
+            transform.RotateAround(target.transform.position, Vector3.up, touchDirection.x * speedMultiplier);
             yield return null;
         }
-
         yield return null;
     }
-    // Update is called once per frame
+
     void Update()
     {
+#if UNITY_EDITOR
+
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            Vector2 TouchDirection = new Vector2(1, 0);
-            Vector3 worldVector = Camera.main.ScreenToWorldPoint(new Vector3(TouchDirection.x, TouchDirection.y, 0));
+            Vector2 touchDirection = new Vector2(1, 0);
 
-            Vector2 SpinDirection = new Vector2(TouchDirection.x - (Camera.main.pixelWidth * 0.5f), TouchDirection.y - (Camera.main.pixelHeight * 0.5f)) * 2f;
-
-            transform.RotateAround(Target.transform.position, Vector3.up, TouchDirection.x * SpeedMultiplier);
-            //transform.RotateAround(player.transform.position, Vector3.right, TouchDirection.y * 0.2f);
-
-            //Y_Yaw.transform.eulerAngles = new Vector3(SpinDirection.y * 0.1f, 0f, 0f);
-
-         //CameraTransform.LookAt(Target.transform.position);
+            transform.RotateAround(target.transform.position, Vector3.up, touchDirection.x * speedMultiplier);
         }
-        if (Input.GetKey(KeyCode.RightArrow))
+        else if (Input.GetKey(KeyCode.RightArrow))
         {
-            Vector2 TouchDirection = new Vector2(-1, 0);
-           // Vector3 worldVector = Camera.main.ScreenToWorldPoint(new Vector3(TouchDirection.x, TouchDirection.y, 0));
+            Vector2 touchDirection = new Vector2(-1, 0);
 
-            Vector2 SpinDirection = new Vector2(TouchDirection.x - (Camera.main.pixelWidth * 0.5f), TouchDirection.y - (Camera.main.pixelHeight * 0.5f)) * 2f;
-
-            transform.RotateAround(Target.transform.position, Vector3.up, TouchDirection.x * SpeedMultiplier);
-            //transform.RotateAround(player.transform.position, Vector3.right, TouchDirection.y * 0.2f);
-
-            //Y_Yaw.transform.eulerAngles = new Vector3(SpinDirection.y * 0.1f, 0f, 0f);
-
-         //   CameraTransform.LookAt(Target.transform.position);
+            transform.RotateAround(target.transform.position, Vector3.up, touchDirection.x * speedMultiplier);
         }
+#elif UNITY_IOS || UNITY_ANDROID
+
         if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
         {
-            Vector2 TouchDirection = Input.GetTouch(0).deltaPosition;
-        //    Vector3 worldVector = Camera.main.ScreenToWorldPoint(new Vector3(TouchDirection.x, TouchDirection.y, 0));
+            Vector2 touchDirection = Input.GetTouch(0).deltaPosition;
 
-            Vector2 SpinDirection = new Vector2(TouchDirection.x - (Camera.main.pixelWidth * 0.5f), TouchDirection.y - (Camera.main.pixelHeight * 0.5f)) * 2f;
-
-            transform.RotateAround(Target.transform.position, Vector3.up, TouchDirection.x * SpeedMultiplier);
-            //transform.RotateAround(player.transform.position, Vector3.right, TouchDirection.y * 0.2f);
-
-            //Y_Yaw.transform.eulerAngles = new Vector3(SpinDirection.y * 0.1f, 0f, 0f);
-
-        //    CameraTransform.LookAt(Target.transform.position);
+            transform.RotateAround(target.transform.position, Vector3.up, touchDirection.x * speedMultiplier);
         }
+#endif
     }
-    public float SpeedMultiplier = 0.37f;
-    public GameObject Target;
-    public Transform CameraTransform;
+    public float speedMultiplier = 0.37f;
+    public GameObject target;
 }

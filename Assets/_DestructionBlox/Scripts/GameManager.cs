@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
@@ -7,10 +6,9 @@ using DG.Tweening;
 
 public class GameManager : MonoBehaviour
 {
-    // Start is called before the first frame update
     void Start()
     {
-        currentLevel = PlayerPrefs.GetInt("Level");
+        PlayerPrefs.GetInt("Level");
         InitLevel();
         uiManager.SetVibration();
     }
@@ -21,6 +19,7 @@ public class GameManager : MonoBehaviour
         uiManager.currentLevel.text = currentLevel.ToString();
         uiManager.nextLevel.text = (currentLevel + 1).ToString();
         currentGameState = GameState.Start;
+
         uiManager.fireworkVictory.SetActive(false);
         for (int i = 0; i< currentLD.Count; i++)
         {
@@ -29,6 +28,7 @@ public class GameManager : MonoBehaviour
         }
         currentLD.Clear();
         uiManager.startInterface.SetActive(false);
+        uiManager.lastBalls.SetActive(false);
 
         uiManager.looseInterface.SetActive(false);
         uiManager.victoryInterface.SetActive(false);
@@ -56,22 +56,19 @@ public class GameManager : MonoBehaviour
     }
     public void StartLevel()
     {
-        Debug.LogError("StartLevel");
-
         currentScore = 0;
         currentGameState = GameState.InGame;
 
         ScoreUi.text = currentScore.ToString();
         StartCoroutine("EnablePhysicSmooth");
-        int nbBalls = 5 + (int)(currentLevel * 0.3f);
-        nbBalls = nbBalls < 8 ? nbBalls : 8;
+        int nbBalls = 3 + (int)(currentLevel * 0.2f);
+        nbBalls = nbBalls < 6 ? nbBalls : 6;
         AddBalls(nbBalls);
         spawnProjectile.CreateProjectile();
         uiManager.startInterface.SetActive(false);
         uiManager.inGameCanvas.SetActive(true);
         spawnProjectile.enabled = true;
         spawnProjectile.transform.GetChild(0).gameObject.SetActive(true);
-
     }
     private IEnumerator GenerateLevelLdSmoothWithDelay(float timer)
     {
@@ -80,68 +77,71 @@ public class GameManager : MonoBehaviour
     }
     private IEnumerator GenerateLevelLdSmooth()
     {
-        var go = SelectLd();
-        var GenerateLd = new GameObject();
-        GenerateLd.name = go.name;
-        GenerateLd.transform.position = new Vector3(0, 0, 0);
-        go.transform.position = new Vector3(0, 0, 0);
-        int luckNormal = (int)(currentLevel * 0.9f);//5
+        var ldModel = SelectLd();
+        var generateLd = new GameObject(ldModel.name);
+        generateLd.transform.position = new Vector3(0, 0, 0);
+        ldModel.transform.position = new Vector3(0, 0, 0);
+
+        int luckNormal = (int)(currentLevel * 0.9f);
         luckNormal = luckNormal <= 10 ? luckNormal : 25;
-        int luckExplosive = (int)(currentLevel * .3f);//5
+
+        int luckExplosive = (int)(currentLevel * .3f);
         luckExplosive = luckExplosive <= 10 ? luckNormal : 10;
-        int luckBonus = (int)(currentLevel * 0.5f);//5
+
+        int luckBonus = (int)(currentLevel * 0.5f);
         luckBonus = luckBonus <= 10 ? luckBonus : 10;
-        int luckColor = 100 - luckBonus - luckExplosive;//90
-        for (int i = 0; i < go.transform.childCount; i++)
+
+        int luckColor = 100 - luckBonus - luckExplosive;
+
+        for (int i = 0; i < ldModel.transform.childCount; i++)
         {
             int random = UnityEngine.Random.Range(0, 101);
             ElementDestructible.TypeOfElement typeOfBox = ElementDestructible.TypeOfElement.Normal;
             if (random <= luckNormal)
             {
                 typeOfBox = ElementDestructible.TypeOfElement.Normal;
-                GameObject elementNormal = Instantiate(elementBasePrefab, go.transform.GetChild(i).transform.position, Quaternion.identity);
-                if (elementNormal.GetComponent<ElementDestructible>()!= null)
+                GameObject elementNormal = Instantiate(elementBasePrefab, ldModel.transform.GetChild(i).transform.position, ldModel.transform.GetChild(i).transform.rotation);
                 elementNormal.GetComponent<ElementDestructible>().InitElement(this, typeOfBox);
-                elementNormal.transform.parent = GenerateLd.transform;
+                elementNormal.transform.parent = generateLd.transform;
                 currentLD.Add(elementNormal);
             }
-            if (random > luckNormal && random <= luckColor)
+            else if (random > luckNormal && random <= luckColor)
             {
                 typeOfBox = ElementDestructible.TypeOfElement.Color;
-                GameObject elementColor = Instantiate(elementColorPrefab, go.transform.GetChild(i).transform.position, Quaternion.identity);
+                GameObject elementColor = Instantiate(elementColorPrefab, ldModel.transform.GetChild(i).transform.position, ldModel.transform.GetChild(i).transform.rotation);
                 elementColor.GetComponent<ElementDestructibleColor>().InitElement(this, typeOfBox);
-                elementColor.transform.parent = GenerateLd.transform;
+                elementColor.transform.parent = generateLd.transform;
                 currentLD.Add(elementColor);
                 targetScore += 10;
 
             }
-            if (random > luckColor && random <= (luckColor+luckBonus))
+            else if (random > luckColor && random <= (luckColor+luckBonus))
             {
                 typeOfBox = ElementDestructible.TypeOfElement.Bonus;
-                GameObject elementBonus = Instantiate(elementBonusPrefab, go.transform.GetChild(i).transform.position, Quaternion.identity);
+                GameObject elementBonus = Instantiate(elementBonusPrefab, ldModel.transform.GetChild(i).transform.position, ldModel.transform.GetChild(i).transform.rotation);
                 elementBonus.GetComponent<ElementDestructibleBonus>().InitElement(this, typeOfBox);
-                elementBonus.transform.parent = GenerateLd.transform;
+                elementBonus.transform.parent = generateLd.transform;
                 currentLD.Add(elementBonus);
                 targetScore += 100;
             }
-            if (random > (luckColor + luckBonus) && random <= (luckColor + luckBonus + luckExplosive))
+            else if (random > (luckColor + luckBonus) && random <= (luckColor + luckBonus + luckExplosive))
             {
                 typeOfBox = ElementDestructible.TypeOfElement.Explosive;
-                GameObject elementBombe = Instantiate(elementExplosivePrefab, go.transform.GetChild(i).transform.position, Quaternion.identity);
+                GameObject elementBombe = Instantiate(elementExplosivePrefab, ldModel.transform.GetChild(i).transform.position, ldModel.transform.GetChild(i).transform.rotation);
                 elementBombe.GetComponent<ElementDestructibleBombe>().InitElement(this, typeOfBox);
-                elementBombe.transform.parent = GenerateLd.transform;
+                elementBombe.transform.parent = generateLd.transform;
                 currentLD.Add(elementBombe);
             }
-            //  go.transform.GetChild(i).GetComponent<ElementDestructible>().InitElement(this, typeOfBox);
-            go.transform.GetChild(i).name = i.ToString();
             yield return new WaitForSeconds(0.05f);
         }
         int resultTotal = (luckColor + luckBonus + luckExplosive);
-        Debug.Log(targetScore  + " " + resultTotal);
         float multiplicatorScore = (0.5f + (currentLevel * 0.02f));
         multiplicatorScore = multiplicatorScore <= 1.05f ? multiplicatorScore : 1.05f;
+
         targetScore = (int)(targetScore * (multiplicatorScore));
+
         uiManager.startBtn.interactable = true;
+        Destroy(ldModel);
         yield return null;
     }
     public void AddBalls(int nb)
@@ -168,7 +168,6 @@ public class GameManager : MonoBehaviour
         {
             currentLD[igo].GetComponent<Rigidbody>().isKinematic = false;
             yield return new WaitForEndOfFrame();
-
         }
         yield return null;
 
@@ -178,59 +177,13 @@ public class GameManager : MonoBehaviour
         int ld = UnityEngine.Random.Range(0, Lds.Count);
         return Instantiate(Lds[ld]);
     }
-    private void GenerateLevelWithLd()
-    {
-        var go = SelectLd();
-        var GenerateLd = new GameObject();
-        GenerateLd.name = go.name;
-        GenerateLd.transform.position = new Vector3(0, 0, 0);
-        go.transform.position = new Vector3(0, 0, 0);
-        for (int i = 0; i < go.transform.childCount; i++)
-        {
-            int random = UnityEngine.Random.Range(0, 101);
-            ElementDestructible.TypeOfElement typeOfBox = ElementDestructible.TypeOfElement.Normal;
-            if (random <= 10)
-            {
-                typeOfBox = ElementDestructible.TypeOfElement.Normal;
-                GameObject elementNormal = Instantiate(elementBasePrefab, go.transform.GetChild(i).transform.position, Quaternion.identity);
-                elementNormal.GetComponent<ElementDestructible>().InitElement(this, typeOfBox);
-                elementNormal.transform.parent = GenerateLd.transform;
-            }
-            if (random> 10 && random <= 70)
-            {
-                typeOfBox = ElementDestructible.TypeOfElement.Color;
-                GameObject elementColor = Instantiate(elementColorPrefab, go.transform.GetChild(i).transform.position, Quaternion.identity);
-                elementColor.GetComponent<ElementDestructibleColor>().InitElement(this, typeOfBox);
-                elementColor.transform.parent = GenerateLd.transform;
-
-            }
-            if (random > 70 && random <= 85)
-            {
-                typeOfBox = ElementDestructible.TypeOfElement.Bonus;
-                GameObject elementBonus = Instantiate(elementBonusPrefab, go.transform.GetChild(i).transform.position, Quaternion.identity);
-                elementBonus.GetComponent<ElementDestructibleBonus>().InitElement(this, typeOfBox);
-                elementBonus.transform.parent = GenerateLd.transform;
-
-            }
-            if (random > 85 && random <= 100)
-            {
-                typeOfBox = ElementDestructible.TypeOfElement.Explosive;
-                GameObject elementBombe = Instantiate(elementExplosivePrefab, go.transform.GetChild(i).transform.position, Quaternion.identity);
-                elementBombe.GetComponent<ElementDestructibleBombe>().InitElement(this, typeOfBox);
-                elementBombe.transform.parent = GenerateLd.transform;
-
-            }
-            //  go.transform.GetChild(i).GetComponent<ElementDestructible>().InitElement(this, typeOfBox);
-            go.transform.GetChild(i).name = i.ToString();
-        }
-    }
 
     public void WinLevel()
     {
         if (currentGameState == GameState.EndGame)
             return;
         uiManager.startBtn.interactable = false;
-        if(currentGameState == GameState.CheckEnd)
+        if (currentGameState == GameState.CheckEnd)
             uiManager.timerBeforeLoose.transform.parent.DOScale(0, 0.5f).OnComplete(() => uiManager.timerBeforeLoose.transform.parent.gameObject.SetActive(false));
 
         currentGameState = GameState.EndGame;
@@ -278,10 +231,6 @@ public class GameManager : MonoBehaviour
     public void AddScore(int sc)
     {
         StartCoroutine("ScoreSmooth", sc);
-     //   currentScore += sc;
-     //       ScoreUi.text = currentScore.ToString();
-     //   uiManager.UpdateScore(currentScore, targetScore);
-  
     }
     public IEnumerator ScoreSmooth(int sc)
     {
@@ -296,37 +245,59 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(0.01f);
         }
         if (currentScore >= targetScore)
-        {
             WinLevel();
-
-        }
         yield return null;
     }
-    private int currentLevel;
-    private int currentScore;
-    public PlayerAmmunitions playerAmmunitions;
-    public SpawnProjectile spawnProjectile;
-    public CameraController cameraController;
+    public bool GetVibrationActivate()
+    {
+        return vibrationActivate;
+    }
+    public void InverseVibrationActivate()
+    {
+        vibrationActivate = !vibrationActivate;
+    }
+
     public UIManager uiManager;
 
+    [SerializeField]
+    private PlayerAmmunitions playerAmmunitions;
+    [SerializeField]
+    private SpawnProjectile spawnProjectile;
+    [SerializeField]
+    private CameraController cameraController;
+
+    [SerializeField]
     public GameObject elementExplosivePrefab;
+    [SerializeField]
     public GameObject elementBonusPrefab;
+    [SerializeField]
     public GameObject elementColorPrefab;
+    [SerializeField]
     public GameObject elementBasePrefab;
-    public List<ElementDestructible> elementDestructiblesPrefab;
+
+    [SerializeField]
     public List<GameObject > currentLD;
-    public List<GameObject> Lds;
-    public TextMeshProUGUI ScoreUi;
-    public Transform groundGraph;
-    public bool vibrationActivate;
-    public Transform startPos;
-    int targetScore;
-    public enum GameState
+    [SerializeField]
+    private List<GameObject> Lds;
+
+    [SerializeField]
+    private TextMeshProUGUI ScoreUi;
+    [SerializeField]
+    private Transform groundGraph;
+    [SerializeField]
+    private Transform startPos;
+    private int currentLevel;
+    private int currentScore;
+
+    private int targetScore;
+    private bool vibrationActivate;
+    private GameState currentGameState;
+
+    private enum GameState
     {
         Start,
         InGame,
         CheckEnd,
         EndGame
     }
-    public GameState currentGameState;
 }

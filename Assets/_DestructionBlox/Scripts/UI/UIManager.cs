@@ -7,22 +7,11 @@ using DG.Tweening;
 
 public class UIManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     public void UpdateScore(int currentScore, int targetScore)
     {
-        Debug.Log(currentScore + " " + targetScore);
         sliderScore.value = ((float)currentScore / targetScore) ;
     }
+
     public void ClickOption()
     {
         if (optionOpen)
@@ -36,6 +25,7 @@ public class UIManager : MonoBehaviour
             optionOpen = true;
         }
     }
+
     public void OpenVictoryScreen()
     {
         victoryInterface.SetActive(true);
@@ -43,13 +33,13 @@ public class UIManager : MonoBehaviour
         textVictory.localScale = Vector3.zero;
         textVictory.DOScale(1, 1f);
         fireworkVictory.SetActive(true);
-
     }
+
     public void SetVibration(GameObject not = null)
     {
-        gm.vibrationActivate = !gm.vibrationActivate;
-        if(not != null)
-            not.SetActive(!gm.vibrationActivate);
+        gm.InverseVibrationActivate();
+        if (not != null)
+            not.SetActive(!gm.GetVibrationActivate());
     }
     public GameManager gm;
     public GameObject inGameCanvas;

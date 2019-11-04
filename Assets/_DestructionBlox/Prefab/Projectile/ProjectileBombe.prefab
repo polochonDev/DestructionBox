@@ -123,6 +123,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   myTypeOfBall: 2
-  radius: 20
-  power: 4000
+  radius: 5
+  power: 5000
   FxBombe: {fileID: 100004, guid: 58213e333a1312245b035a80c7f719fa, type: 3}

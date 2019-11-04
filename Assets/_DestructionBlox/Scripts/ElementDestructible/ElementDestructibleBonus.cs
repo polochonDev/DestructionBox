@@ -6,15 +6,12 @@ public class ElementDestructibleBonus : ElementDestructible
 {
     public override void InitElement(GameManager gameManager, TypeOfElement mT)
     {
-        gameObject.name += "Bonus";
         gameObject.GetComponent<MeshRenderer>().material = materialBonus;
 
         base.InitElement(gameManager, mT);
     }
     public override void ActiveMyEffectWithProjectil()
     {
-        Debug.Log(myType.ToString());
-
         ApplyBonus();
         DestroyMeWithDelay();
         base.ActiveMyEffectWithProjectil();
@@ -47,17 +44,6 @@ public class ElementDestructibleBonus : ElementDestructible
     private void ApplyBonus()
     {
         gm.AddScore(100);
-    }
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
     public GameObject FxBonus;
     public Material materialBonus;

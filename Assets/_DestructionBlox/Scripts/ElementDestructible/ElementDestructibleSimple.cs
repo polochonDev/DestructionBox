@@ -4,17 +4,7 @@ using UnityEngine;
 
 public class ElementDestructibleSimple : ElementDestructible
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     public override void InitElement(GameManager gameManager, TypeOfElement mT)
     {
         gameObject.name += "Normal";
@@ -24,7 +14,6 @@ public class ElementDestructibleSimple : ElementDestructible
     }
     public override void ActiveMyEffectWithProjectil()
     {
-    //    base.ActiveMyEffectWithProjectil();
     }
     public Material materialNormal;
 

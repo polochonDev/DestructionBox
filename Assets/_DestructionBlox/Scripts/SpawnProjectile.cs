@@ -5,13 +5,10 @@ using UnityEngine;
 
 public class SpawnProjectile : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public void Start()
     {
-        //currentProjectile = projectiles[0];
+        dragDistance = Screen.width / 15;
     }
-
-    // Update is called once per frame
     void Update()
     {
 #if UNITY_EDITOR
@@ -24,23 +21,22 @@ public class SpawnProjectile : MonoBehaviour
 
         if (Input.touchCount > 0)
         {
-            Touch touch = Input.GetTouch(0); // get the touch
+            Touch touch = Input.GetTouch(0);
             if (Input.GetTouch(0).phase == TouchPhase.Began)
             {
-                fp = touch.position;
-                lp = touch.position;
+                firstTouchPos = touch.position;
+                lastTouchPos = touch.position;
             }
             else if (touch.phase == TouchPhase.Ended)
             {
-                lp = touch.position;
-                if (Mathf.Abs(lp.x - fp.x) > dragDistance || Mathf.Abs(lp.y - fp.y) > dragDistance)
+                lastTouchPos = touch.position;
+                if (Mathf.Abs(lastTouchPos.x - firstTouchPos.x) > dragDistance || Mathf.Abs(lastTouchPos.y - firstTouchPos.y) > dragDistance)
                 {
                     //drag
                 }
                 else
                 {
                     FireProjectile();
-
                 }
             }
         }
@@ -48,8 +44,6 @@ public class SpawnProjectile : MonoBehaviour
     }
     public void CreateProjectile()
     {
-        Debug.LogError("CreateProjectile");
-
         if (ammunitions.currentAmmo.Count == 1)
         {
             gameManager.uiManager.lastBalls.SetActive(true);
@@ -61,7 +55,6 @@ public class SpawnProjectile : MonoBehaviour
                 Destroy(currentProjectile.gameObject);
             currentInfoAmmo = ammunitions.currentAmmo.Pop();
             currentProjectile = Instantiate(currentInfoAmmo.prefabAmmo, firePoint.transform.position, Quaternion.identity);
-            Debug.Log(firePoint.transform.position);
             currentProjectile.GetComponent<ProjectileMove>().Init(this);
             currentProjectile.transform.parent = firePoint.transform;
             ballReady = true;
@@ -73,7 +66,7 @@ public class SpawnProjectile : MonoBehaviour
         ammunitions.UpdateInterfaceAmmo();
 
     }
-    public void FireProjectile()
+    private void FireProjectile()
     {
         if (!ballReady)
             return;
@@ -84,32 +77,25 @@ public class SpawnProjectile : MonoBehaviour
         currentProjectile.GetComponent<Rigidbody>().velocity = currentProjectile.transform.forward * currentInfoAmmo.speedAmmo;
         ballReady = false;
     }
-    /*   private void CreateProjectile()
-       {
-     /*      if (ammunitions.currentAmmo.Count > 0)
-           {
-               GameObject projectile;
-               if (firePoint != null)
-               {
-                   currentInfoAmmo = ammunitions.currentAmmo.Pop();
-                   projectile = Instantiate(infoAmmo.prefabAmmo, firePoint.transform.position, Quaternion.identity);
-                   if (lookTouchTarget != null)
-                       projectile.transform.localRotation = lookTouchTarget.GetRotation();
-                   projectile.GetComponent<Rigidbody>().velocity = projectile.transform.forward * infoAmmo.speedAmmo;
-               }
-               else
-                   Debug.Log("no fire point");
-           }
-           */
-    //   }
+    public PlayerAmmunitions.InfoAmmo GetInfoCurrentAmmo()
+    {
+        return currentInfoAmmo;
+    }
+
     public GameManager gameManager;
-    public GameObject firePoint;
-    public PlayerAmmunitions ammunitions;
-    public GameObject currentProjectile;
-    public PlayerAmmunitions.InfoAmmo currentInfoAmmo;
-    public LookTouchTarget lookTouchTarget;
-    private Vector3 fp;   //First touch position
-    private Vector3 lp;   //Last touch position
+
+    [SerializeField]
+    private GameObject firePoint;
+    [SerializeField]
+    private PlayerAmmunitions ammunitions;
+    [SerializeField]
+    private LookTouchTarget lookTouchTarget;
+
+    private GameObject currentProjectile;
+    private PlayerAmmunitions.InfoAmmo currentInfoAmmo;
+
+    private Vector3 firstTouchPos;   //First touch position
+    private Vector3 lastTouchPos;   //Last touch position
     private float dragDistance;  //minimum distance for a swipe to be registered
     private bool ballReady;
 }

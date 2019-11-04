@@ -20,12 +20,11 @@ public class ProjectileColor : ProjectileMove
     protected override void DestroyMe()
     {
         sp.CreateProjectile();
-        Debug.Log(myTypeOfBall.ToString() + this.name);
         Destroy(gameObject);
     }
     public override void Init(SpawnProjectile sp)
     {
-        myColor = sp.currentInfoAmmo.myColor;
+        myColor = sp.GetInfoCurrentAmmo().myColor;
         this.GetComponent<Renderer>().material = materialsColor[(int)myColor];
         base.Init(sp);
     }
@@ -33,6 +32,7 @@ public class ProjectileColor : ProjectileMove
     {
         if (firstContact)
             return;
+        
         if (collision.transform.GetComponent<ElementDestructibleColor>() != null && collision.transform.GetComponent<ElementDestructibleColor>().myColor == myColor)
         {
             firstContact = true;
@@ -46,28 +46,22 @@ public class ProjectileColor : ProjectileMove
             Instantiate(FxFail, transform.position, Quaternion.identity);
             DestroyMe();
         }
-        else if (collision.transform.GetComponent<ElementDestructibleBombe>())
+        else if (collision.transform.GetComponent<ElementDestructible>())
         {
             firstContact = true;
 
-            collision.transform.GetComponent<ElementDestructibleBombe>().ActiveMyEffectWithProjectil();
-            DestroyMe();
-
-        }
-        else if (collision.transform.GetComponent<ElementDestructibleBonus>())
-        {
-            firstContact = true;
-
-            collision.transform.GetComponent<ElementDestructibleBonus>().ActiveMyEffectWithProjectil();
+            collision.transform.GetComponent<ElementDestructible>().ActiveMyEffectWithProjectil();
             DestroyMe();
 
         }
         else
             base.OnCollisionEnter(collision);
-        //    base.OnCollisionEnter(collision);
     }
-    public ElementDestructible.Color myColor;
-    public Material[] materialsColor;
-    public GameObject FxFail;
+    [SerializeField]
+    private Material[] materialsColor;
+    [SerializeField]
+    private GameObject FxFail;
+
+    private ElementDestructible.Color myColor;
 
 }

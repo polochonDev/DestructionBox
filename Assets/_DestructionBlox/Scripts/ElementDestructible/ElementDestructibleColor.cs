@@ -4,21 +4,9 @@ using UnityEngine;
 
 public class ElementDestructibleColor : ElementDestructible
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     public override void InitElement(GameManager gameManager, TypeOfElement mT)
     {
-        gameObject.name += "Color";
-
         myColor = (Color)Random.Range(0, 3);
         gameObject.GetComponent<MeshRenderer>().material = materialsColor[(int)myColor];
 
@@ -53,36 +41,39 @@ public class ElementDestructibleColor : ElementDestructible
     }
     public void CheckNeighbourColor()
     {
-        Collider[] elementInZone = Physics.OverlapSphere(this.transform.position, 1.3f);
+        Collider[] elementInZone = Physics.OverlapSphere(this.transform.position, 1.5f);
         toDestroy = true;
 
         foreach (var c in elementInZone)
         {
-            if (c.gameObject != gameObject && c.GetComponent<ElementDestructibleColor>() != null && !c.GetComponent<ElementDestructibleColor>().toDestroy)
+            if (c.gameObject != gameObject)
             {
-             //   Debug.Log(c.gameObject.name);
-                c.GetComponent<ElementDestructibleColor>().CheckNeighbourColor(myColor, delayToDestroy + 0.1f, 10);
-            } 
+                if (c.TryGetComponent(out ElementDestructibleColor eColor) && !eColor.toDestroy)
+                {
+                    eColor.CheckNeighbourColor(myColor, delayToDestroy + 0.1f, 10);
+                }
+            }
         }
         DestroyMeWithDelay();
-
     }
 
     public void CheckNeighbourColor(Color color, float timer, int score)
     {
         if (myType == TypeOfElement.Color && color != Color.None && color == myColor)
         {
-            Collider[] elementInZone = Physics.OverlapSphere(this.transform.position, 1.3f);
+            Collider[] elementInZone = Physics.OverlapSphere(this.transform.position, 1.5f);
             toDestroy = true;
 
             foreach (var c in elementInZone)
             {
-                if (c.gameObject != gameObject && c.GetComponent<ElementDestructibleColor>() != null && !c.GetComponent<ElementDestructibleColor>().toDestroy)
+                if (c.gameObject != gameObject)
                 {
-               //     Debug.Log(c.gameObject.name);
-                    delayToDestroy = timer;
-                    c.GetComponent<ElementDestructibleColor>().CheckNeighbourColor(color, timer + 0.1f, score + 5);
-                    DestroyMeWithDelay(delayToDestroy);
+                    if (c.TryGetComponent(out ElementDestructibleColor eColor) && !eColor.toDestroy)
+                    {
+                        delayToDestroy = timer;
+                        eColor.CheckNeighbourColor(color, timer + 0.1f, score + 5);
+                        DestroyMeWithDelay(delayToDestroy);
+                    }
                 }
             }
             gm.AddScore(score);
@@ -90,7 +81,9 @@ public class ElementDestructibleColor : ElementDestructible
         }
     }
     public Color myColor = Color.None;
-    public Material[] materialsColor;
-    public GameObject[] FXColor;
+    [SerializeField]
+    private Material[] materialsColor;
+    [SerializeField]
+    private GameObject[] FXColor;
 
 }
